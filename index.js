@@ -22,21 +22,7 @@ const addresses = solConfig.addresses;
 const workerPools = new Map(); // Map to store workerId -> addresses
 
 async function createGRPCListener(connection, addresses, workerId, GRPC_URL) {
-    if (!connection) {
-        connection = new Connection(
-            solrpc,
-            {
-                commitment: "confirmed",
-                wsEndpoint: solwss,
-                disableRetryOnRateLimit: false,
-                // confirmTransactionInitialTimeout: 100000,
-                async fetch(input, init) {
-                    return await axiosFetchWithRetries(input, init, RETRY_ATTEMPTS);
-                },
-            }
-        );
-    }
-
+    
     let listener = new grpcListener(connection, workerId, solgrpc);
 
     listener.listenAccountsGRPC(addresses);
@@ -171,7 +157,7 @@ function forkCPU(assignedAddresses) {
 
 const startBot = async () => {
     try {
-        // Working on 2 threads for 10 accounts
+        // Using 2 threads for 10 accounts, for more accounts this line can be uncommented for better allocation
         const numCPUs = 2; // Math.min(os.cpus().length - 2, addresses.length); // Limit to available account or CPU cores
 
         if (cluster.isMaster) {
