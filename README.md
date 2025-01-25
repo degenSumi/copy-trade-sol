@@ -31,11 +31,6 @@ This repository implements a multithreaded copy trading bot that monitors and re
 
 1. Clone the repository:
 
-   ```bash
-   git clone https://github.com/your-username/copy-trade-sol.git
-   cd copy-trade-sol
-   ```
-
 2. Install dependencies:
 
    ```bash
