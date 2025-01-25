@@ -216,7 +216,7 @@ const startBot = async () => {
                     );
 
                     // account listeners can be created for both websockets as well as grpc
-                    // if grpc access is available than grpc can be used, however this is developed with access to a free and probably only free grpc service all that node, so not thoroghly tested for reliablity
+                    // if grpc access is available than grpc can be used, however this is developed with access to a free and probably only free grpc service `all that node`, so not thoroghly tested for reliablity
 
                     const listener = await createGRPCListener(connection, addresses, workerId, solgrpc);
                     // const listener = await createWssListener(connection, addresses, workerId);
