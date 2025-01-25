@@ -98,7 +98,7 @@ yarn start
 ### Common Issues
 
 - **Insufficient Funds for Fees**:
-  Ensure monitored wallets have enough SOL for transaction fees.
+  Ensure executing wallet has enough SOL for transaction fees.
 
 - **WebSocket Instability**:
   Use the `grpcListener` as an alternative if WebSocket connections are unreliable.
