@@ -50,7 +50,10 @@ This repository implements a multithreaded copy trading bot that monitors and re
 
 4. Modify `config.json` to set thresholds, swap amounts, and other parameters as required
 
-5. Toggle between `grpcListener`/`wssListener` by commenting/uncommenting lines 221/222 at `index.js`
+5. Toggle between `grpcListener`/`wssListener` by commenting/uncommenting listener init lines currently at 207/208 in `index.js`
+
+<img width="967" alt="image" src="https://github.com/user-attachments/assets/00c4e7e9-bf37-4bdc-816d-3a7699654d93" />
+
 
 
 ---

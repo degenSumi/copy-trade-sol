@@ -12,7 +12,7 @@ dotenv.config();
 
 const solrpc = process.env.solanarpc;
 const solwss = process.env.solanawss;
-const solgrpc = "https://solana-yellowstone-grpc.publicnode.com:443"; // Free grpc endpoint
+const solgrpc = process.env.solanagrpc || "https://solana-yellowstone-grpc.publicnode.com:443"; // Free grpc endpoint
 const solprivatekey = process.env.solanaprivatekey;
 
 const keypair = Keypair.fromSecretKey(new Uint8Array(decode(solprivatekey)));
