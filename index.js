@@ -6,7 +6,7 @@ const solConfig = require("./configurations/config.json");
 const cluster = require('cluster');
 const os = require('os');
 const chalk = require("chalk");
-const { axiosFetchWithRetries } = require("./customFetch.js");
+const { axiosFetchWithRetries } = require("./fetch.js");
 const dotenv = require('dotenv');
 dotenv.config();
 

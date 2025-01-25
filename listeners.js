@@ -163,12 +163,6 @@ class grpcListener extends EventEmitter {
                     vote: false,
                     failed: false,
                     accountInclude: accountAddresses,
-                    // [
-                    //     "6ortatTqeicxVw2CafNunM8mLDjjCdear78s2yK2vD2y",
-                    //     "CJPRdbnuA6GK2FA63cdsJhPkWVSqdy4Mof8HzDe7TdGP",
-                    //     "5YET3YapxD6to6rqPqTWB3R9pSbURy6yduuUtoZkzoPX"
-                    //     // "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8"
-                    // ],
                     accountExclude: [],
                     accountRequired: ["675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8"], // This will filter only swap trades, currently RaydiumV4 or could add more amm keys here like orca meteora, raydiumclmm
                     },
