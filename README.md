@@ -1,4 +1,4 @@
-# Multithreaded Copy Trading Bot for Solana
+# Multithreaded Copy Trading Bot <> Solana
 
 This repository implements a multithreaded copy trading bot that monitors and replicates trading actions across different accounts on Solana. It is designed for efficiency and reliability, leveraging custom WebSocket listeners and multithreading to ensure optimal performance.
 
