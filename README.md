@@ -85,6 +85,7 @@ yarn start
   - Trades are created, simulated and then can be executed based on monitoring 
 - **Error Handling**:
   - Gracefully handles network issues, transaction failures, and insufficient funds.
+  - Trade values are in the smallest unit(decimals).
 
 ![image](https://github.com/user-attachments/assets/1fbdc489-c8fd-4b96-b9a8-859670d5e4ad)
 ![image](https://github.com/user-attachments/assets/9ee9297c-5320-4946-b00e-081c07878ab3)
