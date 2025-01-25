@@ -145,7 +145,7 @@ class grpcListener extends EventEmitter {
                 }
             
                 else {
-                    console.log(`${ts.toUTCString()}: Received update: ${data}`);
+                    console.log(`${ts.toUTCString()}: Received update: ${JSON.stringify(data)}`);
                 }
                 // stream.end();
                 } else if (data.pong) {
