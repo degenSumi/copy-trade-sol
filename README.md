@@ -48,7 +48,7 @@ This repository implements a multithreaded copy trading bot that monitors and re
    - Copy the `.env.example` file to `.env`.
    - Fill in your configuration details (e.g., API keys, RPC URLs, and thresholds).
 
-4. Modify `config.json` to set thresholds, swap amounts, and other parameters as required
+4. Modify `config.json` to set accounts, and other parameters as required
 
 5. Toggle between `grpcListener`/`wssListener` by commenting/uncommenting listener init lines currently at 207/208 in `index.js`
 
