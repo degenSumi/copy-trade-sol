@@ -1,3 +1,5 @@
+// GRPC and WSS listener classes 
+
 const Client = require("@triton-one/yellowstone-grpc").default;
 const { CommitmentLevel } =  require("@triton-one/yellowstone-grpc");
 const bs58 = require('bs58');
@@ -5,7 +7,7 @@ const { PublicKey } = require('@solana/web3.js');
 const { EventEmitter } = require('events');
 const { logProcessor } = require("./processor.js");
 const redis = require('./redis');
-  
+
 class wssListener extends EventEmitter {
     connection;
     logProcessor = new logProcessor();

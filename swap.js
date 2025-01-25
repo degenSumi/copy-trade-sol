@@ -4,7 +4,7 @@ const { BN } = require("@project-serum/anchor");
 const { initRaydium, isValidAmm, txVersion } = require("./raydium-utils");
 const config = require("./configurations/config.json");
 
-
+// RaydiumV4 swap other dexs: jup, orca, meteora can be added
 async function swapRaydium(connection, tradeParams, from ) {
 
     const { tokenIn, tokenOut, tradeVol } = tradeParams;

@@ -1,3 +1,4 @@
 *node_modules
 .env
 *grpc.js
+*package-lock.json
