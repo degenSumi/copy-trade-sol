@@ -95,8 +95,6 @@ yarn start
 
 ---
 
-## Troubleshooting
-
 ### Common Issues
 
 - **Insufficient Funds for Fees**:
