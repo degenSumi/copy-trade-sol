@@ -104,95 +104,100 @@ class grpcListener extends EventEmitter {
         if(grpc)
             this.GRPC_URL = grpc;
     };
-    // Listen to transactions using yellostone geyser, highly optimal
-    async listenAccountsGRPC(accountAddresses) {
-        try {                    
-            // Open connection.
-            const client = new Client(this.GRPC_URL, "X_TOKEN", {
-                "grpc.max_receive_message_length": 1024 * 1024 * 1024, // 64MiB
-            });         
-            
-            // Subscribe for events
-            const stream = await client.subscribe();
-            
-            // Create `error` / `end` handler
-            const streamClosed = new Promise((resolve, reject) => {
-                stream.on("error", (error) => {
-                    reject(error);
-                    stream.end();
-                });
-                stream.on("end", () => {
-                    resolve();
-                });
-                stream.on("close", () => {
-                    resolve();
-                });
-            });
-            
-            // Handle updates
-            stream.on("data", async (data) => {
-                let ts = new Date();
-                if (data) {
-            
-                if(data.transaction) {
-                    const tx = data.transaction;
-                    // Convert the entire transaction object
-                    const convertedTx = this.convertBuffers(tx);
-                    // console.log(`${ts.toUTCString()}: Received update: ${JSON.stringify(convertedTx)}`, convertedTx);
-                    // Process the transaction for copy trade
-                    const tradeParams = await this.logProcessor.processEventGRPC(convertedTx);
-                    this.emit("tradeparams", tradeParams);
-                }
-            
-                else {
-                    console.log(`${ts.toUTCString()}: Received update: ${JSON.stringify(data)}`);
-                }
-                // stream.end();
-                } else if (data.pong) {
-                console.log(`${ts.toUTCString()}: Processed ping response!`);
-                }
-            });
-            
-            // subscribe request.
-            const request = {
-                commitment: CommitmentLevel.PROCESSED,
-                accountsDataSlice: [],
-                ping: undefined,
-                transactions: {
-                    client: {
+    // Function to send a subscribe request
+    sendSubscription = async (stream, accountAddresses) => {
+        const request = {
+            commitment: CommitmentLevel.CONFIRMED,
+            accountsDataSlice: [],
+            transactions: {
+                client: {
                     vote: false,
                     failed: false,
                     accountInclude: accountAddresses,
                     accountExclude: [],
-                    accountRequired: ["675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8"], // This will filter only swap trades, currently RaydiumV4 or could add more amm keys here like orca meteora, raydiumclmm
-                    },
+                    accountRequired: ["675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8"],
                 },
-                // unused arguments
-                accounts: {},
-                slots: {},
-                transactionsStatus: {},
-                entry: {},
-                blocks: {},
-                blocksMeta: {},
-            };
-            
-            // Send subscribe request
-            await new Promise((resolve, reject) => {
-                stream.write(request, (err) => {
-                if (err === null || err === undefined) {
+            },
+            accounts: {},
+            slots: {},
+            transactionsStatus: {},
+            entry: {},
+            blocks: {},
+            blocksMeta: {},
+        };
+
+        await new Promise((resolve, reject) => {
+            stream.write(request, (err) => {
+                if (!err) {
+                    console.log("Successfully sent subscription request.");
                     resolve();
                 } else {
+                    console.error("Error sending subscription request:", err);
                     reject(err);
                 }
-                });
-            }).catch((reason) => {
-                console.error(reason);
-                throw reason;
             });
-            
-            // Send pings every 5s to keep the connection open
+        });
+    };
+    async listenAccountsGRPC(accountAddresses) {
+        try {
+            const client = new Client(this.GRPC_URL, "X_TOKEN", {
+                "grpc.max_receive_message_length": 1024 * 1024 * 1024, // 64MiB
+            });
+
+            const stream = await client.subscribe();
+            let pingInterval, resubscribeInterval;
+
+            const streamClosed = new Promise((resolve, reject) => {
+                stream.on("error", (error) => {
+                    console.error("Stream error:", error);
+                    clearInterval(pingInterval);
+                    // clearInterval(resubscribeInterval);
+                    stream.end();
+                    reject(error);
+                });
+                stream.on("end", () => {
+                    console.log("Stream ended.");
+                    clearInterval(pingInterval);
+                    // clearInterval(resubscribeInterval);
+                    resolve();
+                });
+                stream.on("close", () => {
+                    console.log("Stream closed.");
+                    clearInterval(pingInterval);
+                    // clearInterval(resubscribeInterval);
+                    resolve();
+                });
+            });
+
+            // Handle incoming data
+            stream.on("data", async (data) => {
+                try {
+                    const ts = new Date();
+                    if (data.transaction) {
+                        const tx = data.transaction;
+                        const convertedTx = this.convertBuffers(tx);
+                        const tradeParams = await this.logProcessor.processEventGRPC(convertedTx);
+                        this.emit("tradeparams", tradeParams);
+                    } else if(data.filters.length === 0){
+                        // It was developed using AllThatNode's free gRPC, which behaves weirdly and stops sending messages after 1 minute,
+                        // despite the connection being okay. To handle this, a resubscription routine is written.
+                        // However, this might break if the gRPC is reliable (maxing out max subscriptions),
+                        // so please test by commenting these lines if you have reliable gRPC connections or try toggling it.
+                        console.log("Resubscribing to the stream...",ts.toUTCString());
+                        await this.sendSubscription(stream, accountAddresses);
+                    } else {
+                        console.log(`${ts.toUTCString()}: Received update: ${JSON.stringify(data)}`);
+                    }
+                } catch (err) {
+                    console.error("Error processing data:", err);
+                }
+            });
+
+            // Initial subscription request
+            await this.sendSubscription(stream, accountAddresses);
+
+            // Send periodic pings to keep the stream alive
             const pingRequest = {
-                // Required, but unused arguments
                 accounts: {},
                 accountsDataSlice: [],
                 transactions: {},
@@ -202,27 +207,28 @@ class grpcListener extends EventEmitter {
                 transactionsStatus: {},
                 entry: {},
             };
-            setInterval(async () => {
-                await new Promise((resolve, reject) => {
-                stream.write(pingRequest, (err) => {
-                    if (err === null || err === undefined) {
-                    resolve();
-                    } else {
-                    reject(err);
-                    }
-                });
-                }).catch((reason) => {
-                console.error(reason);
-                throw reason;
-                });
+
+            pingInterval = setInterval(() => {
+                if (stream.writable) {
+                    stream.write(pingRequest, (err) => {
+                        if (err) console.error("Error sending ping:", err);
+                    });
+                }
             }, this.PING_INTERVAL_MS);
-            
+
+            // Resubscribe periodically to refresh the subscription
+            // resubscribeInterval = setInterval(async () => {
+            //     console.log("Resubscribing to the stream...");
+            //     await this.sendSubscription(stream, accountAddresses);
+            // }, this.RESUBSCRIBE_INTERVAL_MS || 60000); // Resubscribe every 60 seconds
+
+            // Wait for the stream to close
             await streamClosed;
-        } catch(error){
-            console.log(`got error while listening.. reconnecting`);
-            // startListen();
-        };
-    };
+        } catch (error) {
+            console.error("Error while listening, reconnecting...", error);
+            this.listenAccountsGRPC(accountAddresses);
+        }
+    }
     // utility function to process the transaction object
     convertBuffers(obj) {
         if (obj === null || obj === undefined) {

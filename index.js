@@ -44,7 +44,7 @@ async function createGRPCListener(connection, addresses, workerId, GRPC_URL) {
                 // Transaction simulation
                 const tx = await connection.simulateTransaction(transaction.txBuffer, { sigVerify: false });
                 console.log("swap trade simulation...:", tx);
-                // Now we can execute this trade just uncomment these
+                // Now we can execute this trade just uncomment these, just simulation for production use a lot of optimizations will be done to get better landing rate
                 // transaction.txBuffer.sign([keypair]);
                 // await connection.sendTransaction(transaction.txBuffer);
             }
@@ -62,7 +62,6 @@ async function createWssListener(connection, addresses, workerId) {
                 commitment: "confirmed",
                 wsEndpoint: solwss,
                 disableRetryOnRateLimit: false,
-                // confirmTransactionInitialTimeout: 100000,
                 async fetch(input, init) {
                     return await axiosFetchWithRetries(input, init, RETRY_ATTEMPTS);
                 },
@@ -78,10 +77,6 @@ async function createWssListener(connection, addresses, workerId) {
     }));
 
     console.log(subsId);
-
-    // connection._rpcWebSocket.on("error", (error)=> {
-    //   console.log("websocket got an error", error, "at workerId", workerId)
-    // });
 
     listener.on("tradeparams", async (data) => {
         data.map(async (params) => {
@@ -142,16 +137,13 @@ function forkCPU(assignedAddresses) {
     workerPools.set(newWorker.id, assignedAddresses);
     // Send each worker its assigned addresses
     newWorker.send({ addresses: assignedAddresses, workerId: newWorker.id });
-    // Log worker events
+
     newWorker.on('exit', (code, signal) => {
         console.error(`Worker ${newWorker.process.pid} exited with code ${code} and signal ${signal}`);
         // Restart the worker with the same addresses
         const assignedAddresses = workerPools.get(newWorker.id);
         forkCPU(assignedAddresses);
         console.error(`Worker ${newWorker.process.pid} restarted`);
-        // newWorker = cluster.fork();
-        // workerPools.set(newWorker.id, assignedAddresses);
-        // newWorker.send({ pools: assignedAddresses, workerId });
     });
 };
 
@@ -165,12 +157,9 @@ const startBot = async () => {
 
             // Fork workers, each handling specific pools
             for (let i = 0; i < numCPUs; i++) {
-
-                // let worker = cluster.fork();
                 const assignedAddresses = addresses.slice(i * Math.ceil(addresses.length / numCPUs), (i + 1) * Math.ceil(addresses.length / numCPUs));
                 forkCPU(assignedAddresses);
             }
-
 
             cluster.on('message', (worker, message) => {
                 if (message.error) {
@@ -194,23 +183,20 @@ const startBot = async () => {
                             commitment: "confirmed",
                             wsEndpoint: solwss,
                             disableRetryOnRateLimit: false,
-                            // confirmTransactionInitialTimeout: 100000,
                             async fetch(input, init) {
                                 return await axiosFetchWithRetries(input, init, RETRY_ATTEMPTS);
                             }
                         }
                     );
 
-                    // account listeners can be created for both websockets as well as grpc
-                    // if grpc access is available than grpc can be used, however this is developed with access to a free and probably only free grpc service `all that node`, so not thoroghly tested for reliablity
+                    // both wss/grpc listeners can be used
+                    // grpc listener is developed and tested with a free and probably only free grpc service 
+                    // `all that node`, not thoroghly tested for reliablity, however websockets are
 
                     const listener = await createGRPCListener(connection, addresses, workerId, solgrpc);
                     // const listener = await createWssListener(connection, addresses, workerId);
                     
                     // Or use raw websockets just toggle between above lines
-
-                    // Depreceated for now, could be a fallback to ^subscriptionHealth
-                    // listener.monitorSubscriptions();
 
                 } catch (error) {
                     console.log(error);

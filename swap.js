@@ -46,8 +46,8 @@ async function swapRaydium(connection, tradeParams, from ) {
       const data = (await raydium.api.fetchPoolById({ ids: poolId }));
       const poolInfo = data[0];
 
-    //   if (!isValidAmm(poolInfo.programId))
-    //     return;
+      if (!isValidAmm(poolInfo.programId))
+        return;
 
       const poolKeys = await raydium.liquidity.getAmmPoolKeys(poolId);
 
