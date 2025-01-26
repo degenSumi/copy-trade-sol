@@ -22,10 +22,8 @@ class wssListener extends EventEmitter {
         this.workerId = workerId;
         this.id = new Date();
         this.connection.onSlotChange((slot)=>{
-            // console.log(slot.slot , this.workerId, this.id);
             this.prevSlot = slot.slot;
         });
-        // Listener.subInterval = subscriptionHealth();
         this.subscriptionHealth();
     };
     // Listen to the statechanges
@@ -57,17 +55,13 @@ class wssListener extends EventEmitter {
     };
     async subscriptionHealth() {
         this.subInterval = setInterval( async ()=>{
-            // console.log("intevral running.. ", this.workerId, this.id, this.prevSlot);
             if( this.prevSlot === this.checkSlot){
                 console.error("pipe is broken for worker: ", this.workerId, this.id);
-                // this.connection?._rpcWebSocket?.close();
                 this.emit("brokenpipe", this.id);
-                // clearInterval(this.subInterval);
             };
             this.checkSlot = this.prevSlot;
             redis.set(`slot-${this.workerId}`, this.prevSlot);
         }, 45000);
-        // return subInterval;
     };
     async destroy() {
         try{
@@ -179,7 +173,7 @@ class grpcListener extends EventEmitter {
                         const tradeParams = await this.logProcessor.processEventGRPC(convertedTx);
                         this.emit("tradeparams", tradeParams);
                     } else if(data.filters.length === 0){
-                        // It was developed using AllThatNode's free gRPC, which behaves weirdly and stops sending messages after 1 minute,
+                        // It was developed using AllThatNode's free gRPC, which behaves weirdly and stops sending messages after 1 minute, clearing the filters,
                         // despite the connection being okay. To handle this, a resubscription routine is written.
                         // However, this might break if the gRPC is reliable (maxing out max subscriptions),
                         // so please test by commenting these lines if you have reliable gRPC connections or try toggling it.
