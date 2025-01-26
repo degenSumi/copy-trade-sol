@@ -54,6 +54,14 @@ This repository implements a multithreaded copy trading bot that monitors and re
 
 <img width="967" alt="image" src="https://github.com/user-attachments/assets/00c4e7e9-bf37-4bdc-816d-3a7699654d93" />
 
+6. This was developed using AllThatNode's free gRPC service, which behaves unpredictably by stopping message streams after 1 minute, even      though the connection remains active. To address this, a resubscription routine has been implemented.
+   Important: If you're using a reliable gRPC service, this workaround might cause issues like exceeding maximum subscription limits.
+   Recommendation: Test the behavior with and without the resubscription logic by commenting out the corresponding lines in the code to 
+   ensure compatibility with your setup. Lines: 184 `listener.js`
+
+<img width="764" alt="image" src="https://github.com/user-attachments/assets/ad27d1c6-8de7-475b-ae5b-d4db82230b8e" />
+
+
 
 
 ---
