@@ -7,7 +7,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 // Use a staked connection to increase the odds.
-const solrpc = process.env.solanarpc; // Updated with a staked connection here
+const solrpc = process.env.solanarpc; // Update with a staked connection here
 // const solwss = process.env.solanawss;
 // const solprivatekey = process.env.solanaprivatekey;
 
@@ -61,7 +61,7 @@ async function landTx(transaction) {
 
         try {
             abortableResender();
-            const lastValidBlockHeight = blockhashWithExpiryBlockHeight.lastValidBlockHeight + 50;
+            const lastValidBlockHeight = blockhashWithExpiryBlockHeight.lastValidBlockHeight;
         
             // this would throw TransactionExpiredBlockheightExceededError
             await Promise.race([
