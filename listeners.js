@@ -228,7 +228,7 @@ class grpcListener extends EventEmitter {
             console.error("Error while listening, reconnecting...", error);
             this.listenAccountsGRPC(accountAddresses);
         }
-    }
+    };
     // utility function to process the transaction object
     convertBuffers(obj) {
         if (obj === null || obj === undefined) {
@@ -263,7 +263,7 @@ class grpcListener extends EventEmitter {
             return converted;
         }
         return obj; 
-    }
+    };
 };
 
 module.exports = {

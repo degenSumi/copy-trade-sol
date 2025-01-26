@@ -107,4 +107,4 @@ async function swapRaydium(connection, tradeParams, from ) {
 
 module.exports = {
     swapRaydium
-}
+};
