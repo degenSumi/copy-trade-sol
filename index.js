@@ -41,7 +41,7 @@ async function createGRPCListener(connection, addresses, workerId, GRPC_URL) {
                 if (!transaction)
                     return
                 console.log(chalk.red(`🚀 Copy Trade Prepared!`));
-                console.log(transaction);
+                console.log({swapOutAmount: transaction.swapOutAmount, txBuffer: transaction.txBuffer});
                 // Transaction simulation
                 const txSimulation = await connection.simulateTransaction(transaction.txBuffer, { sigVerify: false });
                 console.log("swap trade simulation...:", txSimulation);
@@ -98,7 +98,7 @@ async function createWssListener(connection, addresses, workerId) {
                     if (!transaction)
                         return
                     console.log(chalk.red(`🚀 Copy Trade Prepared!`));
-                    console.log(transaction);
+                    console.log({swapOutAmount: transaction.swapOutAmount, txBuffer: transaction.txBuffer});
                     // Transaction simulation
                     const txSimulation = await connection.simulateTransaction(transaction.txBuffer, { sigVerify: false });
                     console.log("swap trade simulation...:", txSimulation);
