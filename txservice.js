@@ -1,5 +1,7 @@
 // * Transaction landing service for higher land rates during very high network congestions.
+// * Trade compute optimizations for best landing rates
 const { web3 } = require("@project-serum/anchor");
+const { VersionedTransaction, TransactionMessage, ComputeBudgetProgram } = require('@solana/web3.js');
 const promiseRetry = require("promise-retry");
 const { decode } = require('bs58');
 const { swapRaydium } = require("./swap");
@@ -8,19 +10,47 @@ dotenv.config();
 
 // Use a staked connection to increase the odds.
 const solrpc = process.env.solanarpc; // Update with a staked connection here
-// const solwss = process.env.solanawss;
-// const solprivatekey = process.env.solanaprivatekey;
-
-// const keypair = web3.Keypair.fromSecretKey(new Uint8Array(decode(solprivatekey)));
 
 const connection = new web3.Connection(solrpc, 'confirmed');
 
-
-async function landTx(transaction) {
+async function sendOptimizedTransaction(transaction, allInstructions, keypair) {
   
     const blockhashWithExpiryBlockHeight = await connection.getLatestBlockhash();
 
     try {
+
+        const txSimulation = await connection.simulateTransaction(transaction, { sigVerify: false });
+        
+        const unitsConsumed = txSimulation.value.unitsConsumed;
+
+        const computeUnitIx = ComputeBudgetProgram.setComputeUnitLimit({
+            units: Math.ceil(unitsConsumed * 2)
+        });
+
+        // const decompile = TransactionMessage.decompile(transaction.message).instructions; // Not working with raydium weird so using raw instructions now
+
+        const instructions = [];
+        
+        instructions.push(computeUnitIx);
+
+        const computeBudgetIx = ComputeBudgetProgram.setComputeUnitPrice({
+            microLamports: 30000, // Set the priority fee, can be made dynamic as well doing later on
+        });
+        
+        instructions.push(computeBudgetIx);
+
+        instructions.push(allInstructions);
+
+        const computeMessage = new TransactionMessage({
+            payerKey: keypair.publicKey,
+            recentBlockhash: blockhashWithExpiryBlockHeight.blockhash,
+            instructions: instructions.flat()
+        }).compileToV0Message();
+
+        // Rebuilding the tx with compute optimsizations and priority fee
+        transaction = new VersionedTransaction(computeMessage);
+
+        transaction.sign([keypair]);
 
         // Serialize the transaction
         const serializedTransaction = transaction.serialize();
@@ -119,7 +149,7 @@ async function landTx(transaction) {
                     retries: 5,
                     minTimeout: 1e3,
                 }
-            );
+        );
 
         console.log('Response: ',await  response);
 
@@ -130,17 +160,17 @@ async function landTx(transaction) {
 };
 
 module.exports = {
-    landTx
+    sendOptimizedTransaction
 };
 
-// swapRaydium(connection, { tokenIn: "So11111111111111111111111111111111111111112", tokenOut: "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN", tradeVol: "10000"}, keypair.publicKey).then(
+// For testing
+// const solprivatekey = process.env.solanaprivatekey;
+// const keypair = web3.Keypair.fromSecretKey(new Uint8Array(decode(solprivatekey)));
+// swapRaydium(connection, { tokenIn: "So11111111111111111111111111111111111111112", tokenOut: "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN", tradeVol: "1000"},keypair.publicKey).then(
 //     async(tx) => {
-//         console.log(tx);
+//         // console.log(tx);
 //         tx.txBuffer.sign([keypair]);
-//         const simulationResult = await connection.simulateTransaction(tx.txBuffer, {sigVerify: false});
-//         console.log(simulationResult);
-//         if(!simulationResult?.value?.err)
-//             await landTx(tx.txBuffer).then(console.log);
+//         await sendOptimizedTransaction(tx.txBuffer, tx.allInstructions, keypair).then(console.log);
+//         process.exit();
 //     }
 // );
-

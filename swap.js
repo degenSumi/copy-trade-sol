@@ -81,10 +81,11 @@ async function swapRaydium(connection, tradeParams, from ) {
         inputMint: tokenIn,
         associatedOnly: false,
         txVersion,
-        computeBudgetConfig: {
-          units: 600000,
-          microLamports: 100000000,
-        },
+        // Calculting the compute budget and setting priority fee in txservice.js for optimal tx landing
+        // computeBudgetConfig: {
+        //   units: 600000,
+        //   microLamports: 100000000,
+        // },
       });
 
       const mainTx = tx.transaction;
@@ -98,7 +99,7 @@ async function swapRaydium(connection, tradeParams, from ) {
         //     verifySignatures: false
         //   });
 
-      return { swapOutAmount: out.minAmountOut, txBuffer: mainTx};
+      return { swapOutAmount: out.minAmountOut, txBuffer: mainTx, allInstructions: tx.builder.allInstructions};
     } catch (error) {
         console.log(error);
         throw error;

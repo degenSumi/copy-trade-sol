@@ -2,7 +2,7 @@ const { grpcListener, wssListener } = require("./listeners");
 const { swapRaydium } = require("./swap.js");
 const { decode } = require('bs58');
 const { Keypair, Connection } = require('@solana/web3.js');
-const { landTx } = require("./txservice");
+const { sendOptimizedTransaction } = require("./txservice");
 const solConfig = require("./configurations/config.json");
 const cluster = require('cluster');
 const os = require('os');
@@ -43,13 +43,14 @@ async function createGRPCListener(connection, addresses, workerId, GRPC_URL) {
                 console.log(chalk.red(`🚀 Copy Trade Prepared!`));
                 console.log(transaction);
                 // Transaction simulation
-                const tx = await connection.simulateTransaction(transaction.txBuffer, { sigVerify: false });
-                console.log("swap trade simulation...:", tx);
-                // Now we can execute this trade just uncomment these, just simulation for production use a lot of optimizations will be done to get better landing rate
+                const txSimulation = await connection.simulateTransaction(transaction.txBuffer, { sigVerify: false });
+                console.log("swap trade simulation...:", txSimulation);
+                // Now we can execute this trade just uncomment these
+                // Use txservice to send transactions optimally even during high network congestion
+                if(!txSimulation.value.err) await sendOptimizedTransaction(transaction.txBuffer, transaction.allInstructions, keypair);
+                // Or Simply send the transaction 
                 // transaction.txBuffer.sign([keypair]);
                 // await connection.sendTransaction(transaction.txBuffer);
-                // Alternatively Use txservice to send transactions optimally even during high network congestion
-                // await landTx(transaction.txBuffer);
             }
         } catch (error) {
             console.log(error);
@@ -99,13 +100,14 @@ async function createWssListener(connection, addresses, workerId) {
                     console.log(chalk.red(`🚀 Copy Trade Prepared!`));
                     console.log(transaction);
                     // Transaction simulation
-                    const tx = await connection.simulateTransaction(transaction.txBuffer, { sigVerify: false });
-                    console.log("swap trade simulation...:", tx);
-                    // Now we can execute this trade just uncomment these // Just for simulation for production use a lot of optimizations will be done for higher landing rate
-                    // transaction.txBuffer.sign([keypair]);
-                    // await connection.sendTransaction(transaction.txBuffer);
-                    // Use txservice to send transactions optimally even during high network congestion
-                    // await landTx(transaction.txBuffer);
+                    const txSimulation = await connection.simulateTransaction(transaction.txBuffer, { sigVerify: false });
+                    console.log("swap trade simulation...:", txSimulation);
+                   // Now we can execute this trade just uncomment these
+                   // Use txservice to send transactions optimally even during high network congestion
+                   if(!txSimulation.value.err) await sendOptimizedTransaction(transaction.txBuffer, transaction.allInstructions, keypair);
+                   // Or Simply send the transaction 
+                   // transaction.txBuffer.sign([keypair]);
+                   // await connection.sendTransaction(transaction.txBuffer);
                 }
             } catch (error) {
                 console.log(error);
