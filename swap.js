@@ -21,7 +21,7 @@ async function swapRaydium(connection, tradeParams, from ) {
       owner: keypair
     });
 
-    // Initialize the Program RaydiumV4
+    // Program RaydiumV4
     const programId = new PublicKey("675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8");
 
     // Set the slippage
@@ -98,7 +98,6 @@ async function swapRaydium(connection, tradeParams, from ) {
         //     verifySignatures: false
         //   });
 
-      // Return the transaction
       return { swapOutAmount: out.minAmountOut, txBuffer: mainTx};
     } catch (error) {
         console.log(error);
