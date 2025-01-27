@@ -14,6 +14,7 @@ dotenv.config();
 const solrpc = process.env.solanarpc;
 const solwss = process.env.solanawss;
 const solgrpc = process.env.solanagrpc || "https://solana-yellowstone-grpc.publicnode.com:443"; // Free grpc endpoint
+const grpctoken = process.env.grpctoken;
 const solprivatekey = process.env.solanaprivatekey;
 
 const keypair = Keypair.fromSecretKey(new Uint8Array(decode(solprivatekey)));
@@ -22,9 +23,9 @@ const RETRY_ATTEMPTS = 3;
 const addresses = solConfig.addresses;
 const workerPools = new Map(); // Map to store workerId -> addresses
 
-async function createGRPCListener(connection, addresses, workerId, GRPC_URL) {
+async function createGRPCListener(connection, addresses, workerId) {
     
-    let listener = new grpcListener(connection, workerId, solgrpc);
+    let listener = new grpcListener(connection, workerId, solgrpc, grpctoken);
 
     listener.listenAccountsGRPC(addresses);
 
@@ -200,7 +201,7 @@ const startBot = async () => {
                     // grpc listener is developed and tested with a free and probably only free grpc service 
                     // `all that node`, not thoroghly tested for reliablity, however websockets are
 
-                    const listener = await createGRPCListener(connection, addresses, workerId, solgrpc);
+                    const listener = await createGRPCListener(connection, addresses, workerId);
                     // const listener = await createWssListener(connection, addresses, workerId);
                     
                     // Or use raw websockets just toggle between above lines

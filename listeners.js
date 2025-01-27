@@ -87,16 +87,19 @@ class wssListener extends EventEmitter {
 class grpcListener extends EventEmitter {
     logProcessor = new logProcessor();
     GRPC_URL = "https://solana-yellowstone-grpc.publicnode.com:443";
+    X_TOKEN = "NULL";
     PING_INTERVAL_MS = 30000;
     workerId;
     id;
     subInterval;
-    constructor(connection, workerId, grpc) {
+    constructor(connection, workerId, grpc, xtoken) {
         super();
         this.workerId = workerId;
         this.id = new Date();
-        if(grpc)
+        if(grpc) {
             this.GRPC_URL = grpc;
+            this.X_TOKEN = xtoken;
+        }
     };
     // Function to send a subscribe request
     sendSubscription = async (stream, accountAddresses) => {
@@ -134,7 +137,7 @@ class grpcListener extends EventEmitter {
     };
     async listenAccountsGRPC(accountAddresses) {
         try {
-            const client = new Client(this.GRPC_URL, "X_TOKEN", {
+            const client = new Client(this.GRPC_URL, this.X_TOKEN, {
                 "grpc.max_receive_message_length": 1024 * 1024 * 1024, // 64MiB
             });
 
