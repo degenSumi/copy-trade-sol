@@ -13,7 +13,7 @@ class logProcessor {
             // else
             sigConf.limit = 25;
             const txs = await connection.getSignaturesForAddress(new PublicKey(accountAddress), sigConf, 'confirmed');
-            let tradetx = [{sig: "d"}];
+            let tradetx = [];
             if (!txs)
                 return "0";
             if (txs.length && txs[0]?.signature) {
