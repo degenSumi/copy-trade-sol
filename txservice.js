@@ -1,5 +1,5 @@
-// * Transaction landing service for higher land rates during very high network congestions.
-// * Trade compute optimizations for best landing rates
+// * Transaction landing service for the best landing rates even during very high network congestions.
+// * Trade compute optimizations for the best landing rates
 const { web3 } = require("@project-serum/anchor");
 const { VersionedTransaction, TransactionMessage, ComputeBudgetProgram } = require('@solana/web3.js');
 const promiseRetry = require("promise-retry");
@@ -47,7 +47,7 @@ async function sendOptimizedTransaction(transaction, allInstructions, keypair) {
             instructions: instructions.flat()
         }).compileToV0Message();
 
-        // Rebuilding the tx with compute optimsizations and priority fee
+        // Rebuilding the tx with compute optimizations and priority fee
         transaction = new VersionedTransaction(computeMessage);
 
         transaction.sign([keypair]);
