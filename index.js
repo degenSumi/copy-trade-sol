@@ -45,7 +45,7 @@ async function createGRPCListener(connection, addresses, workerId) {
                 console.log({swapOutAmount: transaction.swapOutAmount, txBuffer: transaction.txBuffer});
                 // Transaction simulation
                 const txSimulation = await connection.simulateTransaction(transaction.txBuffer, { sigVerify: false });
-                console.log("swap trade simulation...:", txSimulation);
+                console.log(chalk.green(`🚀 Trade simulated:`), txSimulation);
                 // Now we can execute this trade just uncomment these
                 // Use txservice to send transactions optimally even during high network congestion
                 if(!txSimulation.value.err) await sendOptimizedTransaction(transaction.txBuffer, transaction.allInstructions, keypair);
