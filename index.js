@@ -76,12 +76,9 @@ async function createWssListener(connection, addresses, workerId) {
     let listener = new wssListener(connection, workerId, solgrpc);
 
     let subsId = await Promise.all(addresses.map(async (address) => {
-        const id = await listener.listenAccount(address);
-        return id;
+        return listener.listenAccount(address);
     }));
-
-    console.log(subsId);
-
+    
     listener.on("tradeparams", async (data) => {
         data.map(async (params) => {
             try {
@@ -156,8 +153,7 @@ function forkCPU(assignedAddresses) {
 
 const startBot = async () => {
     try {
-        // Using 2 threads for 10 accounts, for more accounts this line can be uncommented for better allocation
-        const numCPUs = 2; // Math.min(os.cpus().length - 2, addresses.length); // Limit to available account or CPU cores
+        const numCPUs = Math.min(os.cpus().length - 2, addresses.length); // Limit to available account or CPU cores
 
         if (cluster.isMaster) {
             console.log(`Master process ${process.pid} is running`);
@@ -181,9 +177,7 @@ const startBot = async () => {
             // Code for each worker
             process.on('message', async ({ addresses, workerId }) => {
                 console.log(`Worker ${process.pid} listening to accounts`, addresses);
-
                 try {
-
                     let connection = new Connection(
                         solrpc,
                         {
@@ -195,16 +189,13 @@ const startBot = async () => {
                             }
                         }
                     );
-
                     // both wss/grpc listeners can be used
                     // grpc listener is developed and tested with a free and probably only free grpc service 
                     // `all that node`, not thoroghly tested for reliablity, however websockets are
 
                     const listener = await createGRPCListener(connection, addresses, workerId);
                     // const listener = await createWssListener(connection, addresses, workerId);
-                    
                     // Or use raw websockets just toggle between above lines
-
                 } catch (error) {
                     console.log(error);
                     process.send({ error: `Worker ${workerId} failed: ${error.message}` });
