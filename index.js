@@ -75,8 +75,7 @@ async function createWssListener(connection, addresses, workerId) {
     }
     let listener = new wssListener(connection, workerId, solgrpc);
 
-    let subsId = [];
-    subsId = await Promise.all(addresses.map(async (address) => {
+    let subsId = await Promise.all(addresses.map(async (address) => {
         const id = await listener.listenAccount(address);
         return id;
     }));
